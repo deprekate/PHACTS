@@ -3,20 +3,17 @@
 import os
 import sys
 import random
-import pickle
-import lzma
 import subprocess
 import argparse
 from argparse import RawTextHelpFormatter
 
-import dill
 import numpy as np
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
 
-
 sys.path.pop(0)
 import phacts.load_data as load
+
 
 def is_valid_file(x):
 	if not os.path.exists(x):
