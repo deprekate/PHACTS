@@ -1,0 +1,2 @@
+include *.md LICENSE VERSION
+include phacts/lifestyle.pkl.xz
