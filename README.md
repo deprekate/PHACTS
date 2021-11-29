@@ -24,4 +24,4 @@ or
  python3 setup.py install
 ```
 
-This is the new python based recode of my original per code, and is in a VERY alpha state for now.
+This is the new python based recoding of my original perl code, and is in a VERY alpha state for now.
