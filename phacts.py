@@ -76,7 +76,10 @@ if __name__ == '__main__':
 	for j,p in enumerate(selected_proteins):
 		cmd = "echo '>temp\n" + p.sequence +  "\n' | fasta36 -b 1 -H -q @ " + args.infile + " | grep '^Smith-Waterman' | head -n1 | cut -d' ' -f4"
 		pid = subprocess.getoutput(cmd)[:-1]
-		X[0,j] = float(pid)
+		try:
+			X[0,j] = float(pid)
+		except:
+			print(cmd)
 	
 	preds = clf.predict_proba(X)
 	label = le.inverse_transform(np.array([np.argmax(preds)]))

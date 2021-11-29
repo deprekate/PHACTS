@@ -25,3 +25,17 @@ or
 ```
 
 This is the new python based recoding of my original perl code, and is in a VERY alpha state for now.
+* Currently it expects fasta36 to be visible on your path, and only does one replicate
+
+
+PHACTS Example
+--------------
+
+Run on included sample data:
+```sh
+phacts.py tests/NC_001416.faa
+```
+Output is the predicted lifestyle and the class probabilities
+```sh
+['Temperate'] [[0.40920868 0.59079132]]
+```

@@ -35,7 +35,7 @@ def main():
         python_requires='>3.5.2',
         packages=['phacts'],
 		package_data={
-			'phacts': ['phacts/lifestyle.pkl.xz'],
+			'phacts': ['phacts/lifestyle.pkl.xz']
 		},
 		install_requires=['sklearn','numpy','dill'],
 		include_package_data=True
