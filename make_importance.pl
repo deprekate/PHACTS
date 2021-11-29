@@ -87,72 +87,72 @@ foreach my $gen (keys %genome_class){
 }
 #----------calculating protein importance scores
 print "Calculating protein importance scores\n";
-		my $WTR = gensym();
-		my $RDR = gensym();
-                my $pid = open2($RDR, $WTR, 'R --slave --no-save --no-restore --no-environ --silent --args');
-                print $WTR "suppressPackageStartupMessages(library(randomForest));\n";
-                my $tt = 0;
-		print $WTR "n=c(";
-		my $comma = "";
-                foreach my $prot (@all_prots){
-			print $WTR $comma,"'",$prot,"'";
-			$comma = ",";
-		}
-		print $WTR ");\n";
-                foreach my $genome (sort keys %genome_class){
-                        $tt++;
-                        print $WTR "s".$tt."=c(";
-                        foreach my $prot (@all_prots){
-                                print $WTR $fasta_scores{$prot."<->".$genome}.",";
-                        }
-                        print $WTR "'".$genome_class{$genome}."','".$genome."');\n";
-                }
-                print $WTR "data1=rbind(";
-                while($tt>1){
-                        print $WTR "s".$tt.",";
-                        $tt--;
-                }
-                print $WTR "s".$tt.");\n";
-                print $WTR "x=data1[1:nrow(data1),1:(ncol(data1)-2)];\n";
-                print $WTR "y=as.factor(data1[1:nrow(data1),ncol(data1)-1]);\n";
-                print $WTR "phage.rf <- randomForest(x,y,ntree=round(ncol(data1)));\n";
-                print $WTR "options(scipen=10)\n";
-		print $WTR "write.table(cbind(n,phage.rf\$importance),'',row.names=FALSE,col.names = FALSE,quote=FALSE, sep='\t');\n";
-                print $WTR "q()\n";
+my $WTR = gensym();
+my $RDR = gensym();
+my $pid = open2($RDR, $WTR, 'R --slave --no-save --no-restore --no-environ --silent --args');
+print $WTR "suppressPackageStartupMessages(library(randomForest));\n";
+my $tt = 0;
+print $WTR "n=c(";
+my $comma = "";
+foreach my $prot (@all_prots){
+	print $WTR $comma,"'",$prot,"'";
+	$comma = ",";
+}
+print $WTR ");\n";
+foreach my $genome (sort keys %genome_class){
+	$tt++;
+	print $WTR "s".$tt."=c(";
+	foreach my $prot (@all_prots){
+		print $WTR $fasta_scores{$prot."<->".$genome}.",";
+	}
+	print $WTR "'".$genome_class{$genome}."','".$genome."');\n";
+}
+print $WTR "data1=rbind(";
+while($tt>1){
+	print $WTR "s".$tt.",";
+	$tt--;
+}
+print $WTR "s".$tt.");\n";
+print $WTR "x=data1[1:nrow(data1),1:(ncol(data1)-2)];\n";
+print $WTR "y=as.factor(data1[1:nrow(data1),ncol(data1)-1]);\n";
+print $WTR "phage.rf <- randomForest(x,y,ntree=round(ncol(data1)));\n";
+print $WTR "options(scipen=10)\n";
+print $WTR "write.table(cbind(n,phage.rf\$importance),'',row.names=FALSE,col.names = FALSE,quote=FALSE, sep='\t');\n";
+print $WTR "q()\n";
 
-                close($WTR);
-		open(IMPFILE,">",$ARGV[0].".importance") or die("cannot open importance file for writing\n");
-                while(<$RDR>){
-                        chomp();
-                        print IMPFILE $_."\n";
-                }
-		close(IMPFILE);
-                close($RDR);
+close($WTR);
+open(IMPFILE,">",$ARGV[0].".importance") or die("cannot open importance file for writing\n");
+while(<$RDR>){
+	chomp();
+	print IMPFILE $_."\n";
+}
+close(IMPFILE);
+close($RDR);
 #----------create config file
 print "Finished\n";
 exit(1);
 sub get_fasta{
-        open(FILE, "<@_") or die("Cannot open FASTA file.\n");
-        my $first;
+	open(FILE, "<@_") or die("Cannot open FASTA file.\n");
+	my $first;
 	my %seqs;
 	my $header;
-        my $first = 0;
+	my $first = 0;
 	my @lines = <FILE>;
 	foreach my $line(@lines){
-                chomp($line);
-                if ($line =~ /^>/){
-			$header = $line;
-			$header =~ s/^>//;
-			$header =~ s/\s.*//;
-                        if ($first == 0){
-                                $first = 1;
-                        }
-                        next;
-                }
-                if ($first == 0){ die("Not a standard FASTA file.\n"); }
+	chomp($line);
+	if ($line =~ /^>/){
+		$header = $line;
+		$header =~ s/^>//;
+		$header =~ s/\s.*//;
+		if ($first == 0){
+			$first = 1;
+		}
+		next;
+	}
+	if ($first == 0){ die("Not a standard FASTA file.\n"); }
 		$seqs{$header} = $seqs{$header}.$line;
-        }
-        close(FILE);
+	}
+	close(FILE);
 	return \%seqs;
 }
 

@@ -19,7 +19,7 @@ use File::Basename;
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # This is the path to your FASTA35 install 
-my $fasta_path = "/home/deprekate/fasta-35.4.12/bin/fasta35";
+my $fasta_path = "fasta-36.3.8h/bin/fasta36";
 #my $fasta_path = "/bin/fasta35";
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -100,14 +100,14 @@ if(($#genome_files+1)){
 					my $output = `$command`;
 					my $identity = 0;
 					if($output =~ m/Smith-Waterman score.+; (.+?)% identity/){
-                                		$identity = $1;
-                        		}else{
-                                		if($output =~ m/No sequences with E\(\) < 10/){
-                                        		$identity = 0; #redundant
-                                		}else{
+						$identity = $1;
+					}else{
+						if($output =~ m/No sequences with E\(\) < 10/){
+							$identity = 0; #redundant
+						}else{
 							die("\t-Error: no value found: $command \n");
-                                		}		
-                        		}
+						}
+					}
 					print FASTADB $_,"<->",$gen,"\t",$identity,"\n";
 					$fasta_scores{$_."<->".$gen} = $idenity;
 				}
@@ -123,27 +123,27 @@ if(($#genome_files+1)){
 print "Finished\n";
 exit(1);
 sub get_fasta{
-        open(FILE, "<@_") or die("Cannot open FASTA file.\n");
-        my $first;
+	open(FILE, "<@_") or die("Cannot open FASTA file.\n");
+	my $first;
 	my %seqs;
 	my $header;
-        my $first = 0;
+	my $first = 0;
 	my @lines = <FILE>;
 	foreach my $line(@lines){
-                chomp($line);
-                if ($line =~ /^>/){
+		chomp($line);
+		if ($line =~ /^>/){
 			$header = $line;
 			$header =~ s/^>//;
 			$header =~ s/\s.*//;
-                        if ($first == 0){
-                                $first = 1;
-                        }
-                        next;
-                }
-                if ($first == 0){ die("Not a standard FASTA file.\n"); }
-		$seqs{$header} = $seqs{$header}.$line;
-        }
-        close(FILE);
+			if ($first == 0){
+				$first = 1;
+			}
+			next;
+		}
+		if ($first == 0){ die("Not a standard FASTA file.\n"); }
+	$seqs{$header} = $seqs{$header}.$line;
+	}
+	close(FILE);
 	return \%seqs;
 }
 

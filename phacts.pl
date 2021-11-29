@@ -34,7 +34,7 @@ use File::Basename;
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # This is the path to your FASTA35 install 
-my $fasta_path = "/home/deprekate/fasta-35.4.12/bin/fasta35";
+my $fasta_path = "/Users/katelyn/develop/PHACTS/fasta-36.3.8h/bin/fasta36";
 #my $fasta_path = "/bin/fasta35";
 #------------------------------------------------------------------------------
 # This variable is used to set the number of replicate class predictions to perform.
@@ -50,14 +50,14 @@ my $short = 0;
 # A value of 0 includes all proteins
 # A value of 1 includes only proteins at or above the mean.
 # A value of 2 includes proteins with importance greater then twice the mean.
-my $percent_of_mean = 1;
+my $percent_of_mean = 0;
 #------------------------------------------------------------------------------
 # This variable is used to set how many proteins per classification group are used in creating the similarity vectors
 # The number of proteins per group is calculated by dividing this number by the number of groups. 
 my $sim_vector_length = 600;
 #------------------------------------------------------------------------------
 # This is the number of training cases to use per class
-my $num_train_per_group = 50;
+my $num_train_per_group = 3; #50;
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
@@ -220,12 +220,14 @@ for (my $count = 0; $count < $num_replicates; $count++){
 					print DATAFILE $fasta_scores{$prot."<->".$genome}.",";
 				}
 				print $WTR $fasta_scores{$prot."<->".$genome}.",";
+				print $fasta_scores{$prot."<->".$genome}.",";
 			}
 			print $WTR "'".$genome_type{$genome}."','".$genome."');\n";
 			if($output_data_file){	
 				print DATAFILE $genome_type{$genome}.",".$genome."\n";
 			}
 		}
+		die("asd");
 		print $WTR "data1=rbind(";
 		while($tt>1){
 			print $WTR "s".$tt.",";
@@ -235,6 +237,7 @@ for (my $count = 0; $count < $num_replicates; $count++){
 		# ----------------------------------TESTING SET CREATION-----------------------------------		
 		my @order;
 		my $rf_test_data;	
+		exit();
 		print $WTR "data2 = c(";
 		foreach my $prot (@important_proteins){
 			push(@order,$prot);
@@ -255,6 +258,7 @@ for (my $count = 0; $count < $num_replicates; $count++){
 			}
 			print $WTR $identity.",";
 		}
+		exit();
 		print $WTR "'Unknown','".$file_path."')\n";
 		if($output_data_file){	
 			print DATAFILE "Unknown,".$file_path."\n";
