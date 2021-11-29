@@ -33,21 +33,19 @@ if __name__ == '__main__':
 	parser.add_argument('-p', '--num_proteins', type=int, default=600)
 	args = parser.parse_args()
 
-	#genomes = None
-	#with lzma.open("lifestyle.pkl.xz", "rb") as f:
-	#	genomes = dill.load(f)
 
 	genomes = load.lifestyle()
-	
+
+
 	# select the genomes
 	labels = dict()
 	selected_genomes = list()
 	for genome in genomes.values():
 		labels.setdefault(genome.label, []).append(genome.name)
-	
 	for label in labels:
 		selected_genomes.extend(random.sample(labels[label], args.num_genomes))
-	
+
+
 	# select the proteins
 	selected_proteins = list()
 	for genome in genomes.values():
@@ -56,7 +54,8 @@ if __name__ == '__main__':
 				selected_proteins.append(protein)
 	selected_proteins = random.sample(selected_proteins, args.num_proteins)
 	
-	
+
+	# make the training data
 	X = np.zeros([2*args.num_genomes,args.num_proteins])
 	y = []
 	for i,g in enumerate(selected_genomes):
