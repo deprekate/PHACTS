@@ -34,6 +34,6 @@ PHACTS Example
 Run on included sample data, the output is the predicted lifestyle and the class probabilities:
 ```sh
 $ phacts.py tests/NC_001416.faa 
-Class	    probability  standard deviation
-Temperate	0.626273726	 0.1015846484413923
+Class       probability  standard deviation
+Temperate   0.626273726  0.101584648
 ```
