@@ -38,7 +38,8 @@ def main():
 			'phacts': ['phacts/lifestyle.pkl.xz']
 		},
 		install_requires=['sklearn','numpy','dill'],
-		include_package_data=True
+		include_package_data=True,
+		zip_safe=False
 	)
 
 
