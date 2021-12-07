@@ -25,17 +25,15 @@ or
 ```
 
 This is the new python based recoding of my original perl code, and is in a VERY alpha state for now.
-* Currently it expects fasta35 to be visible on your path, and only does one replicate
-
+* Currently it expects fasta35 to be visible on your path (makeshift binaries can be found in the bin directory)
+I have tried to replicate exactly the functionality of the original published version.  
 
 PHACTS Example
 --------------
 
-Run on included sample data:
+Run on included sample data, the output is the predicted lifestyle and the class probabilities:
 ```sh
-phacts.py tests/NC_001416.faa
-```
-Output is the predicted lifestyle and the class probabilities
-```sh
-['Temperate'] [[0.40920868 0.59079132]]
+$ phacts.py tests/NC_001416.faa 
+Class	    probability  standard deviation
+Temperate	0.626273726	 0.1015846484413923
 ```
