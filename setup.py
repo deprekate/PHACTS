@@ -22,7 +22,7 @@ def main():
 		version = get_version(),
 		author = "Katelyn McNair",
 		author_email = "deprekate@gmail.com",
-		description = 'A program to predict the lifestyle (virulent/temperate) of a phage genome',
+		description = 'A program to predict the lifestyle (virulent/lytic or temperate/lysogenic) of a phage genome',
 		long_description = readme(),
 		long_description_content_type="text/markdown",
 		url =  "https://github.com/deprekate/phacts",
@@ -32,11 +32,9 @@ def main():
 			"License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
 			"Operating System :: OS Independent",
 		],
-        python_requires='>3.5.2',
-        packages=['phacts'],
-		package_data={
-			'phacts': ['phacts/lifestyle.pkl.xz']
-		},
+		python_requires='>3.5.2',
+		packages=find_packages(),
+		package_data = {'': ['*.xz','*.fasta35'],},
 		install_requires=['sklearn','numpy','dill'],
 		include_package_data=True,
 		zip_safe=False

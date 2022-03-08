@@ -20,12 +20,13 @@ or
 
 ```sh
  git clone https://github.com/deprekate/PHACTS.git
- cd PHANOTATE
- python3 setup.py install
+ pip install PHACTS/ --user
 ```
 
-This is the new python based recoding of my original perl code, and is in a VERY alpha state for now.
-* Currently it expects fasta35 to be visible on your path (makeshift binaries can be found in the bin directory)
+This is the new python based recoding of my original perl code, and is in an alpha state for now.
+* I have included fasta35 binaries for Linux and OSX, that should install automatically.  For 
+Windows, you will need to download a windows fasta35 binary, and make it visible on the PATH
+
 I have tried to replicate exactly the functionality of the original published version.  
 
 PHACTS Example
