@@ -7,6 +7,7 @@ import subprocess
 import argparse
 from argparse import RawTextHelpFormatter
 from subprocess import Popen, PIPE, STDOUT
+from sys import platform
 
 import numpy as np
 from sklearn import preprocessing
@@ -14,6 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 sys.path.pop(0)
 import phacts.load_data as load
+#hk.initialize( args.model, os.path.join(params,"parameters_DP09.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
 
 
 def unlist(alist):
@@ -81,7 +83,18 @@ if __name__ == '__main__':
 			prots += p.sequence
 			prots += "\n"
 			#cmd = "echo '>temp\n" + p.sequence +  "\n' | fasta36 -b 1 -H -q @ " + args.infile + " | grep -m 1 '^Smith-Waterman' | head -n1 | cut -d' ' -f4"
-		p = Popen(['fasta35', '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+		path = os.path.dirname(load.__file__)
+		if platform == "linux" or platform == "linux2":
+			path = os.path.join(path, "linux.fasta35")
+			p = Popen([path, '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+		elif platform == "darwin":
+			path = os.path.join(path, "osx.fasta35")
+			p = Popen([path, '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+		else:
+			try:
+				p = Popen(['fasta35', '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+			except:
+				raise OSError("known operating system, you will need to manually install fasta35, and make it visible on your PATH")
 		output = p.communicate(input= bytes(prots, 'utf-8'))[0]
 		flag = False
 		j = 0

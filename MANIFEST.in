@@ -1,3 +1,5 @@
 include *.md LICENSE VERSION
 include phacts/lifestyle.pkl.xz
-include phacts/fasta35osx
+include phacts/*.fasta35
+include bin/osx/fasta35
+include bin/linux/fasta35
