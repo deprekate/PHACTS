@@ -17,6 +17,14 @@ sys.path.pop(0)
 import phacts.load_data as load
 #hk.initialize( args.model, os.path.join(params,"parameters_DP09.txt") , os.path.join(params,"multirnafold.conf"), os.path.join(params,"pkenergy.conf") )
 
+def check_fasta(filepath):
+	seq = ''
+	with open(filepath, mode="r") as f:
+		for line in f:
+			if not line.startswith(">"):
+				seq += line.replace("\n", "").upper()
+	ratio = (seq.count('A') + seq.count('C') + seq.count('G') + seq.count('T')) / len(seq)
+	return ratio < 0.9
 
 def unlist(alist):
 	return alist[0]
@@ -24,6 +32,8 @@ def unlist(alist):
 def is_valid_file(x):
 	if not os.path.exists(x):
 		raise argparse.ArgumentTypeError("{0} does not exist".format(x))
+	if not check_fasta(x):
+		raise argparse.ArgumentTypeError("{0} does not appear to be an amino-acid fasta file".format(x))
 	return x
 
 if __name__ == '__main__':
@@ -102,18 +112,24 @@ if __name__ == '__main__':
 			if line.startswith("Library: "):
 				flag = True
 			elif line.startswith("Smith-Waterman score: ") and flag:
-				X[0,j] = float( line.split(' ')[3].replace('%','') )
+				try:
+					X[0,j] = float( line.split()[3].replace('%','') )
+				except:
+					print(output.decode())
+					print("The offending line is:")
+					print(line)
+					exit()
 				j += 1
 				flag = False
 		
 		predictions[rep, :] = unlist(clf.predict_proba(X))
 		#label = unlist(le.inverse_transform(np.array([np.argmax(preds)])))
 		#predictions.setdefault( label , []).append(preds[np.argmax(preds)])
-	print("Class", "probability", "standard deviation", sep ='\t')
+	args.outfile.write("Class\tprobability\tstandard deviation\n")
 	means = predictions.mean(axis=0)
 	stdev = predictions.std(axis=0)
 	index = np.argmax(means)
-	print(unlist(le.inverse_transform([index])), means[index], stdev[index], sep='\t')
+	args.outfile.write("%s\t%s\t%s\n" % (unlist(le.inverse_transform([index])),means[index],stdev[index]) )
 
 
 
