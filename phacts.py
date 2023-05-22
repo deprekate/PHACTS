@@ -81,7 +81,8 @@ def select_proteins(genomes, args):
 		for protein in genome.proteins.values():
 			if float(protein.importance) > args.cutoff:
 				selected_proteins.append(protein)
-	selected_proteins = random.sample(selected_proteins, args.num_proteins)
+	if len(selected_proteins) > args.num_proteins:
+		selected_proteins = random.sample(selected_proteins, args.num_proteins)
 	return selected_proteins
 
 def train_random_forest(genomes, le, selected_genomes, selected_proteins):
