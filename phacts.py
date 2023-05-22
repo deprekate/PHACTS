@@ -44,18 +44,19 @@ def get_protein_sequences(proteins):
 		prots += "\n"
 	return prots
 
-if __name__ == '__main__':
+def parse_arguments():
 	usage = '%s [-opt1, [-opt2, ...]] infile' % __file__
 	parser = argparse.ArgumentParser(description='', formatter_class=RawTextHelpFormatter, usage=usage)
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
-	parser.add_argument('-c', '--cutoff', help='Protein importance threshold', type=float, default=0)
+	parser.add_argument('-c', '--cutoff', help='Protein importance threshold', type=float, default=0.02)
 	parser.add_argument('-g', '--num_genomes', type=int, default=50)
 	parser.add_argument('-p', '--num_proteins', type=int, default=600)
 	parser.add_argument('-r', '--replicates', type=int, default=10)
-	args = parser.parse_args()
+	return parser.parse_args()
 
-
+if __name__ == '__main__':
+	args = parse_arguments()
 	genomes = load.lifestyle()
 
 	labels = dict()
