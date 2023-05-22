@@ -84,6 +84,22 @@ def select_proteins(genomes, args):
 	selected_proteins = random.sample(selected_proteins, args.num_proteins)
 	return selected_proteins
 
+def train_random_forest(genomes, le, selected_genomes, selected_proteins):
+	# make the training data
+	X = np.zeros([2*args.num_genomes,args.num_proteins])
+	y = []
+	for i,g in enumerate(selected_genomes):
+		genome = genomes[g]
+		for j,p in enumerate(selected_proteins):
+			X[i,j] = float(genome.similarities.get(p.header, 0))
+		y.append(genome.label)
+		
+	Y = le.transform(y)
+		
+	clf = RandomForestClassifier(n_estimators=1001)
+	clf.fit(X, Y)
+	return clf
+
 if __name__ == '__main__':
 	args = parse_arguments()
 	genomes = load.lifestyle()
@@ -99,21 +115,8 @@ if __name__ == '__main__':
 	for rep in range(args.replicates):
 		selected_genomes = select_genomes(labels, args)
 		selected_proteins = select_proteins(genomes, args)
+		clf = train_random_forest(genomes, le, selected_genomes, selected_proteins)
 
-		# make the training data
-		X = np.zeros([2*args.num_genomes,args.num_proteins])
-		y = []
-		for i,g in enumerate(selected_genomes):
-			genome = genomes[g]
-			for j,p in enumerate(selected_proteins):
-				X[i,j] = float(genome.similarities.get(p.header, 0))
-			y.append(genome.label)
-		
-		Y = le.transform(y)
-		
-		clf = RandomForestClassifier(n_estimators=1001)
-		clf.fit(X, Y)
-	
 		prots = get_protein_sequences(selected_proteins)
 		p = spawn_fasta35()
 		output = p.communicate(input= bytes(prots, 'utf-8'))[0]
@@ -136,6 +139,7 @@ if __name__ == '__main__':
 		predictions[rep, :] = unlist(clf.predict_proba(X))
 		#label = unlist(le.inverse_transform(np.array([np.argmax(preds)])))
 		#predictions.setdefault( label , []).append(preds[np.argmax(preds)])
+	print(predictions)
 	args.outfile.write("Class\tprobability\tstandard deviation\n")
 	means = predictions.mean(axis=0)
 	stdev = predictions.std(axis=0)
