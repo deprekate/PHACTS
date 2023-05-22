@@ -5,7 +5,6 @@ import sys
 import random
 import subprocess
 import argparse
-from argparse import RawTextHelpFormatter
 from subprocess import Popen, PIPE, STDOUT
 from sys import platform
 
@@ -36,18 +35,96 @@ def is_valid_file(x):
 		raise argparse.ArgumentTypeError("{0} does not appear to be an amino-acid fasta file".format(x))
 	return x
 
-if __name__ == '__main__':
+def get_protein_sequences(proteins):
+	prots = ''
+	for j,p in enumerate(proteins):
+		prots += ">temp" + str(j) + "\n"
+		prots += p.sequence
+		prots += "\n"
+	return prots
+
+def parse_arguments():
 	usage = '%s [-opt1, [-opt2, ...]] infile' % __file__
-	parser = argparse.ArgumentParser(description='', formatter_class=RawTextHelpFormatter, usage=usage)
+	parser = argparse.ArgumentParser(description='', formatter_class=argparse.RawTextHelpFormatter, usage=usage)
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
-	parser.add_argument('-c', '--cutoff', help='The minimum cutoff length for runs', type=int, default=0)
+	parser.add_argument('-c', '--cutoff', help='Protein importance threshold', type=float, default=0.02)
 	parser.add_argument('-g', '--num_genomes', type=int, default=50)
 	parser.add_argument('-p', '--num_proteins', type=int, default=600)
 	parser.add_argument('-r', '--replicates', type=int, default=10)
-	args = parser.parse_args()
+	return parser.parse_args()
 
+def spawn_fasta35():
+	path = os.path.dirname(load.__file__)
+	if platform == "linux" or platform == "linux2":
+		path = os.path.join(path, "linux.fasta35")
+		return Popen([path, '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+	if platform == "darwin":
+		path = os.path.join(path, "osx.fasta35")
+		return Popen([path, '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+	
+	try:
+		p = Popen(['fasta35', '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+		return p
+	except:
+		raise OSError("known operating system, you will need to manually install fasta35, and make it visible on your PATH")
 
+def select_genomes(labels, args):
+	selected_genomes = list()
+	for label in labels:
+		if len(labels[label]) > args.num_genomes:
+			selected_genomes.extend(random.sample(labels[label], args.num_genomes))
+		else:
+			selected_genomes.extend(labels[label])
+	return selected_genomes
+
+def select_proteins(genomes, args):
+	selected_proteins = list()
+	for genome in genomes.values():
+		for protein in genome.proteins.values():
+			if float(protein.importance) > args.cutoff:
+				selected_proteins.append(protein)
+	if len(selected_proteins) > args.num_proteins:
+		selected_proteins = random.sample(selected_proteins, args.num_proteins)
+	return selected_proteins
+
+def train_random_forest(genomes, le, selected_genomes, selected_proteins):
+	# make the training data
+	X = np.zeros([len(selected_genomes),len(selected_proteins)])
+	y = []
+	for i,g in enumerate(selected_genomes):
+		genome = genomes[g]
+		for j,p in enumerate(selected_proteins):
+			X[i,j] = float(genome.similarities.get(p.header, 0))
+		y.append(genome.label)
+		
+	Y = le.transform(y)
+		
+	clf = RandomForestClassifier(n_estimators=1001)
+	clf.fit(X, Y)
+	return clf
+
+def parse_fasta35_scores(output, num_proteins):
+	X = np.zeros([1, num_proteins])
+	flag = False
+	j = 0
+	for line in output.decode().split('\n'):
+		if line.startswith("Library: "):
+			flag = True
+		elif line.startswith("Smith-Waterman score: ") and flag:
+			try:
+				X[0,j] = float( line.split()[3].replace('%','') )
+			except:
+				print(output.decode())
+				print("The offending line is:")
+				print(line)
+				exit()
+			j += 1
+			flag = False
+	return X
+
+if __name__ == '__main__':
+	args = parse_arguments()
 	genomes = load.lifestyle()
 
 	labels = dict()
@@ -59,69 +136,15 @@ if __name__ == '__main__':
 	predictions = np.zeros([ args.replicates , len(labels.keys()) ])
 	# do ten replicates
 	for rep in range(args.replicates):
-		# select the genomes
-		selected_genomes = list()
-		for label in labels:
-			selected_genomes.extend(random.sample(labels[label], args.num_genomes))
-	
-		# select the proteins
-		selected_proteins = list()
-		for genome in genomes.values():
-			for protein in genome.proteins.values():
-				if float(protein.importance) > args.cutoff:
-					selected_proteins.append(protein)
-		selected_proteins = random.sample(selected_proteins, args.num_proteins)
-		
-		# make the training data
-		X = np.zeros([2*args.num_genomes,args.num_proteins])
-		y = []
-		for i,g in enumerate(selected_genomes):
-			genome = genomes[g]
-			for j,p in enumerate(selected_proteins):
-				X[i,j] = float(genome.similarities.get(p.header, 0))
-			y.append(genome.label)
-		
-		Y = le.transform(y)
-		
-		clf = RandomForestClassifier(n_estimators=1001)
-		clf.fit(X, Y)
-	
-		prots = ''
-		X = np.zeros([1,args.num_proteins])
-		for j,p in enumerate(selected_proteins):
-			prots += ">temp" + str(j) + "\n"
-			prots += p.sequence
-			prots += "\n"
-			#cmd = "echo '>temp\n" + p.sequence +  "\n' | fasta36 -b 1 -H -q @ " + args.infile + " | grep -m 1 '^Smith-Waterman' | head -n1 | cut -d' ' -f4"
-		path = os.path.dirname(load.__file__)
-		if platform == "linux" or platform == "linux2":
-			path = os.path.join(path, "linux.fasta35")
-			p = Popen([path, '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-		elif platform == "darwin":
-			path = os.path.join(path, "osx.fasta35")
-			p = Popen([path, '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-		else:
-			try:
-				p = Popen(['fasta35', '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-			except:
-				raise OSError("known operating system, you will need to manually install fasta35, and make it visible on your PATH")
+		selected_genomes = select_genomes(labels, args)
+		selected_proteins = select_proteins(genomes, args)
+		clf = train_random_forest(genomes, le, selected_genomes, selected_proteins)
+
+		prots = get_protein_sequences(selected_proteins)
+
+		p = spawn_fasta35()
 		output = p.communicate(input= bytes(prots, 'utf-8'))[0]
-		flag = False
-		j = 0
-		for line in output.decode().split('\n'):
-			if line.startswith("Library: "):
-				flag = True
-			elif line.startswith("Smith-Waterman score: ") and flag:
-				try:
-					X[0,j] = float( line.split()[3].replace('%','') )
-				except:
-					print(output.decode())
-					print("The offending line is:")
-					print(line)
-					exit()
-				j += 1
-				flag = False
-		
+		X = parse_fasta35_scores(output, len(selected_proteins))
 		predictions[rep, :] = unlist(clf.predict_proba(X))
 		#label = unlist(le.inverse_transform(np.array([np.argmax(preds)])))
 		#predictions.setdefault( label , []).append(preds[np.argmax(preds)])
