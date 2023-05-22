@@ -69,6 +69,21 @@ def spawn_fasta35():
 	except:
 		raise OSError("known operating system, you will need to manually install fasta35, and make it visible on your PATH")
 
+def select_genomes(labels, args):
+	selected_genomes = list()
+	for label in labels:
+		selected_genomes.extend(random.sample(labels[label], args.num_genomes))
+	return selected_genomes
+
+def select_proteins(genomes, args):
+	selected_proteins = list()
+	for genome in genomes.values():
+		for protein in genome.proteins.values():
+			if float(protein.importance) > args.cutoff:
+				selected_proteins.append(protein)
+	selected_proteins = random.sample(selected_proteins, args.num_proteins)
+	return selected_proteins
+
 if __name__ == '__main__':
 	args = parse_arguments()
 	genomes = load.lifestyle()
@@ -82,19 +97,9 @@ if __name__ == '__main__':
 	predictions = np.zeros([ args.replicates , len(labels.keys()) ])
 	# do ten replicates
 	for rep in range(args.replicates):
-		# select the genomes
-		selected_genomes = list()
-		for label in labels:
-			selected_genomes.extend(random.sample(labels[label], args.num_genomes))
-	
-		# select the proteins
-		selected_proteins = list()
-		for genome in genomes.values():
-			for protein in genome.proteins.values():
-				if float(protein.importance) > args.cutoff:
-					selected_proteins.append(protein)
-		selected_proteins = random.sample(selected_proteins, args.num_proteins)
-		
+		selected_genomes = select_genomes(labels, args)
+		selected_proteins = select_proteins(genomes, args)
+
 		# make the training data
 		X = np.zeros([2*args.num_genomes,args.num_proteins])
 		y = []
