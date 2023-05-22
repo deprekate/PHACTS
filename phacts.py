@@ -72,7 +72,10 @@ def spawn_fasta35():
 def select_genomes(labels, args):
 	selected_genomes = list()
 	for label in labels:
-		selected_genomes.extend(random.sample(labels[label], args.num_genomes))
+		if len(labels[label]) > args.num_genomes:
+			selected_genomes.extend(random.sample(labels[label], args.num_genomes))
+		else:
+			selected_genomes.extend(labels[label])
 	return selected_genomes
 
 def select_proteins(genomes, args):
