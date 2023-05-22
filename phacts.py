@@ -49,7 +49,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='', formatter_class=RawTextHelpFormatter, usage=usage)
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
-	parser.add_argument('-c', '--cutoff', help='The minimum cutoff length for runs', type=int, default=0)
+	parser.add_argument('-c', '--cutoff', help='Protein importance threshold', type=float, default=0)
 	parser.add_argument('-g', '--num_genomes', type=int, default=50)
 	parser.add_argument('-p', '--num_proteins', type=int, default=600)
 	parser.add_argument('-r', '--replicates', type=int, default=10)
