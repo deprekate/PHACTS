@@ -36,6 +36,14 @@ def is_valid_file(x):
 		raise argparse.ArgumentTypeError("{0} does not appear to be an amino-acid fasta file".format(x))
 	return x
 
+def get_protein_sequences(proteins):
+	prots = ''
+	for j,p in enumerate(proteins):
+		prots += ">temp" + str(j) + "\n"
+		prots += p.sequence
+		prots += "\n"
+	return prots
+
 if __name__ == '__main__':
 	usage = '%s [-opt1, [-opt2, ...]] infile' % __file__
 	parser = argparse.ArgumentParser(description='', formatter_class=RawTextHelpFormatter, usage=usage)
@@ -86,13 +94,7 @@ if __name__ == '__main__':
 		clf = RandomForestClassifier(n_estimators=1001)
 		clf.fit(X, Y)
 	
-		prots = ''
-		X = np.zeros([1,args.num_proteins])
-		for j,p in enumerate(selected_proteins):
-			prots += ">temp" + str(j) + "\n"
-			prots += p.sequence
-			prots += "\n"
-			#cmd = "echo '>temp\n" + p.sequence +  "\n' | fasta36 -b 1 -H -q @ " + args.infile + " | grep -m 1 '^Smith-Waterman' | head -n1 | cut -d' ' -f4"
+		prots = get_protein_sequences(selected_proteins)
 		path = os.path.dirname(load.__file__)
 		if platform == "linux" or platform == "linux2":
 			path = os.path.join(path, "linux.fasta35")
