@@ -54,6 +54,21 @@ def parse_arguments():
 	parser.add_argument('-r', '--replicates', type=int, default=10)
 	return parser.parse_args()
 
+def spawn_fasta35():
+	path = os.path.dirname(load.__file__)
+	if platform == "linux" or platform == "linux2":
+		path = os.path.join(path, "linux.fasta35")
+		return Popen([path, '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+	if platform == "darwin":
+		path = os.path.join(path, "osx.fasta35")
+		return Popen([path, '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+	
+	try:
+		p = Popen(['fasta35', '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+		return p
+	except:
+		raise OSError("known operating system, you will need to manually install fasta35, and make it visible on your PATH")
+
 if __name__ == '__main__':
 	args = parse_arguments()
 	genomes = load.lifestyle()
@@ -95,18 +110,7 @@ if __name__ == '__main__':
 		clf.fit(X, Y)
 	
 		prots = get_protein_sequences(selected_proteins)
-		path = os.path.dirname(load.__file__)
-		if platform == "linux" or platform == "linux2":
-			path = os.path.join(path, "linux.fasta35")
-			p = Popen([path, '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-		elif platform == "darwin":
-			path = os.path.join(path, "osx.fasta35")
-			p = Popen([path, '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-		else:
-			try:
-				p = Popen(['fasta35', '-b', '1','@', args.infile], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-			except:
-				raise OSError("known operating system, you will need to manually install fasta35, and make it visible on your PATH")
+		p = spawn_fasta35()
 		output = p.communicate(input= bytes(prots, 'utf-8'))[0]
 		flag = False
 		j = 0
