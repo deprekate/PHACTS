@@ -5,7 +5,6 @@ import sys
 import random
 import subprocess
 import argparse
-from argparse import RawTextHelpFormatter
 from subprocess import Popen, PIPE, STDOUT
 from sys import platform
 
@@ -46,7 +45,7 @@ def get_protein_sequences(proteins):
 
 def parse_arguments():
 	usage = '%s [-opt1, [-opt2, ...]] infile' % __file__
-	parser = argparse.ArgumentParser(description='', formatter_class=RawTextHelpFormatter, usage=usage)
+	parser = argparse.ArgumentParser(description='', formatter_class=argparse.RawTextHelpFormatter, usage=usage)
 	parser.add_argument('infile', type=is_valid_file, help='input file')
 	parser.add_argument('-o', '--outfile', action="store", default=sys.stdout, type=argparse.FileType('w'), help='where to write output [stdout]')
 	parser.add_argument('-c', '--cutoff', help='Protein importance threshold', type=float, default=0.02)
