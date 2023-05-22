@@ -100,6 +100,25 @@ def train_random_forest(genomes, le, selected_genomes, selected_proteins):
 	clf.fit(X, Y)
 	return clf
 
+def parse_fasta35_scores(output, num_proteins):
+	X = np.zeros([1, num_proteins])
+	flag = False
+	j = 0
+	for line in output.decode().split('\n'):
+		if line.startswith("Library: "):
+			flag = True
+		elif line.startswith("Smith-Waterman score: ") and flag:
+			try:
+				X[0,j] = float( line.split()[3].replace('%','') )
+			except:
+				print(output.decode())
+				print("The offending line is:")
+				print(line)
+				exit()
+			j += 1
+			flag = False
+	return X
+
 if __name__ == '__main__':
 	args = parse_arguments()
 	genomes = load.lifestyle()
@@ -118,28 +137,13 @@ if __name__ == '__main__':
 		clf = train_random_forest(genomes, le, selected_genomes, selected_proteins)
 
 		prots = get_protein_sequences(selected_proteins)
+
 		p = spawn_fasta35()
 		output = p.communicate(input= bytes(prots, 'utf-8'))[0]
-		flag = False
-		j = 0
-		for line in output.decode().split('\n'):
-			if line.startswith("Library: "):
-				flag = True
-			elif line.startswith("Smith-Waterman score: ") and flag:
-				try:
-					X[0,j] = float( line.split()[3].replace('%','') )
-				except:
-					print(output.decode())
-					print("The offending line is:")
-					print(line)
-					exit()
-				j += 1
-				flag = False
-		
+		X = parse_fasta35_scores(output, len(selected_proteins))
 		predictions[rep, :] = unlist(clf.predict_proba(X))
 		#label = unlist(le.inverse_transform(np.array([np.argmax(preds)])))
 		#predictions.setdefault( label , []).append(preds[np.argmax(preds)])
-	print(predictions)
 	args.outfile.write("Class\tprobability\tstandard deviation\n")
 	means = predictions.mean(axis=0)
 	stdev = predictions.std(axis=0)
