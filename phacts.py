@@ -86,7 +86,7 @@ def select_proteins(genomes, args):
 
 def train_random_forest(genomes, le, selected_genomes, selected_proteins):
 	# make the training data
-	X = np.zeros([2*args.num_genomes,args.num_proteins])
+	X = np.zeros([len(selected_genomes),len(selected_proteins)])
 	y = []
 	for i,g in enumerate(selected_genomes):
 		genome = genomes[g]
